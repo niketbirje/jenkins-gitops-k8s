@@ -10,10 +10,10 @@ node {
     stage('Update GIT') {
             script {
                 catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    withCredentials([usernamePassword(credentialsId: 'github', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
+                    withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
                         //def encodedPassword = URLEncoder.encode("$GIT_PASSWORD",'UTF-8')
                         sh "git config user.email birjeniket@gmail.com"
-                        sh "git config user.name Sameera Dissanayaka"
+                        sh "git config user.name Niket Birje"
                         //sh "git switch master"
                         sh "cat deployment.yml"
                         sh "sed -i 's+niket98/jenkins-flask.*+niket98/jenkins-flask:${DOCKERTAG}+g' deployment.yml"
