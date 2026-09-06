@@ -1,30 +1,55 @@
 node {
-    def app
 
-    stage('Clone repository') {
-      
+    properties([
+        parameters([
+            string(name: 'DOCKERTAG', defaultValue: '', description: 'Docker Image Tag')
+        ])
+    ])
 
-        checkout scm
+    stage('Clone Repository') {
+        git branch: 'main',
+            credentialsId: 'github-token',
+            url: 'https://github.com/niketbirje/jenkins-gitops-k8s.git'
     }
 
-    stage('Update GIT') {
-            script {
-                catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                    withCredentials([usernamePassword(credentialsId: 'github-token', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        //def encodedPassword = URLEncoder.encode("$GIT_PASSWORD",'UTF-8')
-                        sh "git config user.email birjeniket@gmail.com"
-                        sh "git config user.name niketbirje"
-                        //sh "git switch master"
-                        sh "cat deployment.yml"
-                        
-                        
-                        sh 'sed -i "s|image: niket98/jenkins-flask:.*|image: niket98/jenkins-flask:' + DOCKERTAG + '|g" deployment.yml'                    
-                        sh "cat deployment.yml"
-                        sh "git add ."
-                        sh "git commit -m 'Done by Jenkins Job changemanifest: ${env.BUILD_NUMBER}'"
-                        sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/${GIT_USERNAME}/jenkins-gitops-k8s.git HEAD:main"
-      }
+    stage('Update Manifest') {
+        sh """
+            echo "DOCKERTAG=${DOCKERTAG}"
+
+            echo "===== BEFORE ====="
+            cat deployment.yml
+
+            sed -i "s|image: niket98/jenkins-flask:.*|image: niket98/jenkins-flask:${DOCKERTAG}|g" deployment.yml
+
+            echo "===== AFTER ====="
+            cat deployment.yml
+
+            echo "===== GIT DIFF ====="
+            git diff
+        """
     }
-  }
-}
+
+    stage('Commit & Push') {
+        withCredentials([
+            usernamePassword(
+                credentialsId: 'github-token',
+                usernameVariable: 'GIT_USERNAME',
+                passwordVariable: 'GIT_PASSWORD'
+            )
+        ]) {
+
+            sh """
+                git config user.email "birjeniket@gmail.com"
+                git config user.name "niketbirje"
+
+                git add deployment.yml
+
+                git status
+
+                git commit -m "Update image tag to ${DOCKERTAG}" || true
+
+                git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/niketbirje/jenkins-gitops-k8s.git HEAD:main
+            """
+        }
+    }
 }
