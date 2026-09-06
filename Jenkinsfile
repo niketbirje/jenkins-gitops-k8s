@@ -16,7 +16,11 @@ node {
                         sh "git config user.name niketbirje"
                         //sh "git switch master"
                         sh "cat deployment.yml"
-                        sh "sed -i 's+niket98/jenkins-flask.*+niket98/jenkins-flask:${DOCKERTAG}+g' deployment.yml"
+                        //sh "sed -i 's+niket98/jenkins-flask.*+niket98/jenkins-flask:${DOCKERTAG}+g' deployment.yml"
+
+                        
+                        sed -i "s|image: niket98/jenkins-flask:.*|image: niket98/jenkins-flask:${DOCKERTAG}|g" deployment.yml
+                    
                         sh "cat deployment.yml"
                         sh "git add ."
                         sh "git commit -m 'Done by Jenkins Job changemanifest: ${env.BUILD_NUMBER}'"
