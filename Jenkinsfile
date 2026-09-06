@@ -14,12 +14,12 @@ node {
 
     stage('Update Manifest') {
         sh """
-            echo "DOCKERTAG=${DOCKERTAG}"
+            echo "DOCKERTAG=${params.DOCKERTAG}"
 
             echo "===== BEFORE ====="
             cat deployment.yml
 
-            sed -i "s|image: niket98/jenkins-flask:.*|image: niket98/jenkins-flask:${DOCKERTAG}|g" deployment.yml
+            sed -i "s|image: niket98/jenkins-flask:.*|image: niket98/jenkins-flask:${params.DOCKERTAG}|g" deployment.yml
 
             echo "===== AFTER ====="
             cat deployment.yml
@@ -46,7 +46,7 @@ node {
 
                 git status
 
-                git commit -m "Update image tag to ${DOCKERTAG}" || true
+                git commit -m "Update image tag to ${params.DOCKERTAG}"
 
                 git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/niketbirje/jenkins-gitops-k8s.git HEAD:main
             """
